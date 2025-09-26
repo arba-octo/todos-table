@@ -14,7 +14,7 @@ function TodoEditTitle ({ cell, onChange }) {
                 onChange={ (e) => {
                     const v = e.target.value;
                     setValTitle(v);
-                    onChange(v);
+                    onChange?.(v); // безопасный вызов: если пропса нет, просто ничего не случится
                 } }
             />
         </td>

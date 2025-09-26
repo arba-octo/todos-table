@@ -36,6 +36,9 @@
     transform: rotate(360deg);
   }
 }
+td {
+  padding: 1px 10px;
+}
 .button-wrapper {
   border: none;
   background: none;
