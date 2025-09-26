@@ -1,10 +1,11 @@
-import {useState, useCallback} from "react";
+import {useState, useCallback, useEffect} from "react";
 import './App.css';
 import {initialTodos} from "./libs/const";
 import Todo from "./components/todo";
 import TodoEdit from "./components/todoEdit";
 import TodoEditTitle from "./components/todoEditTitle";
 import Actions from "./components/actions";
+import {NewTodo} from "./components/newTodo";
 
 function App() {
     // В data хранятся все актуальные дела!
@@ -12,38 +13,49 @@ function App() {
         const todos = localStorage.getItem("todos");
         return todos ? JSON.parse(todos) : initialTodos;
     });
-    const toUpDateTodos = (id, field, newVal) => {
-        setData(prev => {
-            const updatedTodos = prev.map(todo => todo.id === id ? { ...todo, [field]: newVal } : todo);
-            localStorage.setItem("todos", JSON.stringify(updatedTodos)); // Обновили новый массив todos в localStorage
-            return updatedTodos;
-        });
-    };
-
     const [editId, setEditId] = useState(null);
+    const [drafts, setDrafts] = useState([]); // Все черновики
 
     // Выносим колбэки для их стабилизации
-    const doEdit = useCallback((id) => { setEditId(id) }, []);
-    const saveEdit = useCallback(() => { setEditId(null) }, []);
-
-    const removeTodo = useCallback((id) => {
-        setData(prev => {
-            const updateData = prev.filter((todo) => todo.id !== id);
-            localStorage.setItem("todos", JSON.stringify(updateData));
-            return updateData;
+    const doEdit = useCallback((id) => {
+        setEditId(id);
+        setDrafts(prev => {
+            if (prev.some(item => item.id === id)) return prev; // Если в черновиках редактируемая строка уже есть, то новую не создаем
+            const newDraft = data.find(t => t.id === id); // создаем новый черновик по id
+            return newDraft ? [...prev, { ...newDraft }] : prev;
         })
     }, []);
 
-    const addTodo = () => {
-        return (
-            <tr>
-                <TodoEditTitle cell="" />
-                <TodoEdit cell="" name="completed" />
-                <TodoEdit cell="" name="priority" />
-                <TodoEdit cell={new Date()} name="dueDate" />
-            </tr>
-        )
+    const saveEdit = useCallback((id) => {
+        setDrafts(prev => {
+            const draft = prev.find((draft) => draft.id === id);
+            if (!draft) return prev;
+            setData(prev => prev.map(item => item.id === id ? ({...item, ...draft, id: item.id}) : item));
+            setEditId(null);
+            return prev.filter((item) => item.id !== id)
+        })
+    }, []);
+
+    const saveNewTodo = useCallback((draft) => {
+        setData(prev => {
+            const newTodo = { ...draft, id: crypto.randomUUID() }; return [ ...prev, newTodo ];
+        });
+        setViewAddTodo(false);
+    }, [])
+
+    const removeTodo = useCallback(id => setData(prev => prev.filter((todo) => todo.id !== id) ), []);
+
+    const [viewAddTodo, setViewAddTodo] = useState(false);
+    const addTodo = () => { setViewAddTodo(!viewAddTodo) };
+    const deleteNewTodo = () => { setViewAddTodo(false) }
+
+    const changeDraft = (id, field, value) => {
+        setDrafts(prev => prev.map(draft => draft.id === id ? ({ ...draft, [field]: value }) : draft));
     };
+
+    useEffect(() => {
+        localStorage.setItem("todos", JSON.stringify(data))
+    }, [data]);
 
     return (
         <div>
@@ -67,38 +79,40 @@ function App() {
                 </thead>
                 <tbody>
                 {data.map((todo) => {
-                    const isEditing = editId === todo.id; //  Проверяем редактируется ли эта строка
+                   const isEditing = editId === todo.id; //  Проверяем редактируется ли эта строка
+                   const draft = isEditing ? drafts?.find(d => d.id === todo.id) : undefined;
+                   const v = draft ?? todo; // если есть dfart, то v = draft, а если нет, то v = todo
+
                     return (
                         <tr key={todo.id}>
                             {isEditing
-                                ? <TodoEditTitle cell={todo.title}
-                                                 onChange={(newValue) => toUpDateTodos(todo.id, "title", newValue)}/>
-                                : <Todo cell={todo.title}/>
+                                ? <TodoEditTitle cell={v.title} onChange={(newValue) => changeDraft(v.id, "title", newValue)}/>
+                                : <Todo cell={v.title}/>
                             }
                             {isEditing
                                 ? <TodoEdit
-                                    cell={todo.completed}
+                                    cell={v.completed}
                                     name="completed"
-                                    onChange={(newValue) => toUpDateTodos(todo.id, "completed", newValue)}
+                                    onChange={(newValue) => changeDraft(v.id, "completed", newValue)}
                                 />
-                                : <Todo cell={todo.completed ? "завершена" : "в работе"}/>
+                                : <Todo cell={v.completed ? "завершена" : "в работе"}/>
                             }
                             {isEditing
                                 ? <TodoEdit
-                                    cell={todo.priority}
-                                    id={todo.id}
+                                    cell={v.priority}
+                                    id={v.id}
                                     name="priority"
-                                    onChange={(newValue) => toUpDateTodos(todo.id, "priority", newValue)}
+                                    onChange={(newValue) => changeDraft(v.id, "priority", newValue)}
                                 />
-                                : <Todo cell={todo.priority}/>
+                                : <Todo cell={v.priority}/>
                             }
                             {isEditing
-                                ? <TodoEdit cell={todo.dueDate} name="dueDate"
-                                            onChange={(newValue) => toUpDateTodos(todo.id, "dueDate", newValue)}/>
-                                : <Todo cell={todo.dueDate}/>}
+                                ? <TodoEdit cell={v.dueDate} name="dueDate"
+                                            onChange={(newValue) => changeDraft(v.id, "dueDate", newValue)}/>
+                                : <Todo cell={v.dueDate}/>}
                             <Actions
                                 isEditing={isEditing}
-                                id={todo.id}
+                                id={v.id}
                                 doEdit={doEdit}
                                 saveEdit={saveEdit}
                                 deleteTodo={removeTodo}
@@ -114,6 +128,18 @@ function App() {
             >
                 Добавить новое Todo в таблицу!
             </button>
+            {viewAddTodo &&
+                <table>
+                    <colgroup>
+                        <col width="300px"/>
+                        <col width="200px"/>
+                        <col width="200px"/>
+                        <col width="200px"/>
+                        <col width="200px"/>
+                    </colgroup>
+                    <NewTodo saveNewTodo={saveNewTodo} deleteNewTodo={deleteNewTodo} />
+                </table>
+            }
         </div>
 
     );

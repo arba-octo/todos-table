@@ -1,4 +1,3 @@
-import {completedValues} from "../libs/const";
 
 function TodoEdit ({ cell, name, onChange }) {
     let result = null;
@@ -17,6 +16,7 @@ function TodoEdit ({ cell, name, onChange }) {
                         value={cell}
                         onChange={(e) => onChange(e.target.value)}
                     >
+                        <option value="" disabled>--выберите приоритет--</option>
                         <option value="low">low</option>
                         <option value="medium">medium</option>
                         <option value="high">high</option>
