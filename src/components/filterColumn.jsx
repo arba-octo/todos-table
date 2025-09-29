@@ -19,8 +19,22 @@ function FilterColumn({ name, imgSrc, imgAlt, optionsArr, onChange, value }) {
         return () => document.removeEventListener("pointerdown", closeClickOut);
     }, []);
 
+    // helper: привести любую опцию к {value,label}
+    const toNorm = (opt) =>
+        typeof opt === "object" && opt !== null
+        ? { value: opt.value, label: opt.label ?? String(opt.value) }
+        : { value: opt, label: String(opt) }
+
+    const normOpt = optionsArr.map((item) => toNorm(item));
+    // Для отображения выбранной опции фильтра в заголовке:
+    const [filterHeader, setFilterHeader] = useState("");
+
     // После выбора пункта из выпадашки сама выпадашка закрывается
-    const choose = (v) => { onChange(v); setOpenFilter(false) };
+    const choose = (v, l) => {
+        onChange(v);
+        setOpenFilter(false);
+        setFilterHeader(l)
+    };
 
     return (
         <div className="filter-column" ref={ref}>
@@ -30,7 +44,7 @@ function FilterColumn({ name, imgSrc, imgAlt, optionsArr, onChange, value }) {
                     <img src={imgSrc} alt={imgAlt}/>
                 </button>
             </div>
-            {value && <div className="filter-column__value">{value}</div>}
+            {filterHeader && <div className="filter-column__value">{filterHeader}</div>}
             {openFilter &&
                 <ul
                     role="listbox"
@@ -49,17 +63,17 @@ function FilterColumn({ name, imgSrc, imgAlt, optionsArr, onChange, value }) {
                     >
                         Все
                     </li>
-                    { optionsArr.map(opt =>
+                    { normOpt.map(optObj =>
                         <li
                             role="option"
-                            key={opt}
+                            key={optObj.value}
                             tabIndex={0}
-                            aria-selected={value === opt}
-                            onClick={() => choose(opt)}
+                            aria-selected={value === optObj.value}
+                            onClick={() => choose(optObj.value, optObj.label)}
                             onKeyDown={(e) =>
-                                (e.key === "Enter" || e.key === " ") && choose(opt)
+                                (e.key === "Enter" || e.key === " ") && choose(optObj.value, optObj.label)
                             }
-                        >{opt}</li>
+                        >{optObj.label}</li>
                     )}
                 </ul>
             }

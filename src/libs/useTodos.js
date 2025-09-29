@@ -4,6 +4,7 @@ const LocSt_KEY = "todos";
 
 export function useTodos (initialTodos) {
 
+    const toBool = (v) => v === true || v === "true"; // функция-конвектор в boolean
 
     // ------------------------------ Все состояния ------------------------------------
     // В data хранятся все актуальные дела!
@@ -17,7 +18,7 @@ export function useTodos (initialTodos) {
     // Активация фильтров
     const [filters, setFilters] = useState({
         priority: "",
-        completed: null
+        completed: ""
     });
 
 
@@ -76,15 +77,15 @@ export function useTodos (initialTodos) {
         return data.filter((todo) => {
             // Если фильтр priority задан и его значение не равно значению в todo - данный todo не попадает в результат
             if (filters.priority && todo.priority !== filters.priority) return false;
-            if (filters.completed !== null) {
+            if (filters.completed !== "") {
                 const bool = typeof filters.completed === "string" // если значение comleted строка
-                    ? filters.completed === "true" // то переводим ее зачение в булевое
+                    ? toBool(filters.completed) // то переводим ее зачение в булевое
                     : filters.completed; // иначе оставляем как есть
                 if (todo.completed !== bool) return false
             }
             return true;
         })
-    }, [data, filters]);
+    }, [data, filters.priority, filters.completed]);
 
 
     // ----------------------- Возвращаем сгруппировано (чтобы референсы были стабильными) ----------
