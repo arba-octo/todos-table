@@ -22,6 +22,9 @@ export const initialTodos = [
     {id: 20, title: "Задача 20", completed: false, priority: "medium", dueDate: "2025-10-01"},
 ];
 
-export const completedValues = [true, false];
+export const completedValues = [
+    {value: "true", label: "завершена"},
+    {value: "false", label: "в работе"}
+];
 
 export const priorityValues = ["low", "medium", "high"];

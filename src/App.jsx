@@ -1,5 +1,5 @@
 import './App.css';
-import {initialTodos, priorityValues} from "./libs/const";
+import {completedValues, initialTodos, priorityValues} from "./libs/const";
 import {NewTodo} from "./components/newTodo";
 import FilterColumn from "./components/filterColumn";
 import { useTodos } from "./libs/useTodos";
@@ -7,7 +7,7 @@ import {TableBody} from "./components/tableBody";
 
 function App() {
     const {
-        state: {data, filteredData, editId, drafts, viewAddTodo, filters},
+        state: {filteredData, editId, drafts, viewAddTodo, filters},
         actions: {doEdit, saveEdit, saveNewTodo, removeTodo, addTodo, deleteNewTodo, changeDraft, toChooseFilterValue}
     } = useTodos(initialTodos);
 
@@ -25,15 +25,26 @@ function App() {
                 <thead>
                 <tr>
                     <th>Название</th>
-                    <th>Статус</th>
-                    <FilterColumn
-                        name="Приоритет"
-                        imgSrc="/images/arr-down.svg"
-                        imgAlt="Выбор фильтра-приоритета"
-                        optionsArr={priorityValues}
-                        value={filters.priority}
-                        onChange={(v) => toChooseFilterValue("priority", v)}
-                    />
+                    <th>
+                        <FilterColumn
+                            name="Статус"
+                            imgSrc="/images/arr-down.svg"
+                            imgAlt="Выбор фильтра-статуса"
+                            optionsArr={completedValues}
+                            value={filters.completed}
+                            onChange={(v) => toChooseFilterValue("completed", v)}
+                        />
+                    </th>
+                    <th>
+                        <FilterColumn
+                            name="Приоритет"
+                            imgSrc="/images/arr-down.svg"
+                            imgAlt="Выбор фильтра-приоритета"
+                            optionsArr={priorityValues}
+                            value={filters.priority}
+                            onChange={(v) => toChooseFilterValue("priority", v)}
+                        />
+                    </th>
                     <th>Дедлайн</th>
                     <th>Действия</th>
                 </tr>
