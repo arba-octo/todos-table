@@ -44,6 +44,8 @@ td {
   background: none;
   padding: 0;
   margin: 0;
+  width: 15px;
+  cursor: pointer;
 }
 .actions {
   display: flex;
@@ -56,4 +58,31 @@ td {
 }
 .add-new-todo {
   margin-top: 20px;
+}
+.filter-column {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.filter-column__header {
+  display: flex;
+  align-items: center;
+  column-gap: 5px;
+}
+.filter-column__list {
+  list-style: none;
+  margin: 0;
+  padding: 10px;
+  background: white;
+  border: black solid 1px;
+  border-radius: 3px;
+  position: absolute;
+  top: 28px;
+  left: 86px;
+}
+.filter-column__option {
+
+}
+.filter-column__value {
+
 }
